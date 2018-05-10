@@ -4,7 +4,7 @@ class Game {
 
   def start(numRounds: Int, players: List[Player], startingAmount: Long) = {
 
-    val deck = new MutableDeck()
+    val deck = new MutableDeck().shuffle()
     val rounds = 1 to numRounds
     val initialStacks = players.map((_, startingAmount)).toMap
     val initialState = new RoundState(players = players, stacks = initialStacks)
@@ -137,7 +137,7 @@ class Game {
 
   private def showdown(state: RoundState): Player = {
     // TODO
-    null
+    throw new RuntimeException("Showdown not yet implemented")
   }
 
   private def isBettingRoundComplete(state: RoundState) = {
@@ -146,10 +146,6 @@ class Game {
     // each remaining player should have contributed the same amount to the pot
     // if not - the betting round is not complete
     distinctValues.size == 1
-  }
-
-  private def isRoundComplete(state: RoundState) = {
-    state.players == 1 || state.isPostRiver
   }
 
   private def dealHands(players: List[Player], deck: MutableDeck) = {
@@ -166,21 +162,20 @@ class Game {
 
   private def dealFlop(deck: MutableDeck, board: Board) = {
     burnCard(deck)
-    val flop = (
-      deck.deal(),
-      deck.deal(),
-      deck.deal()
+    board.copy(
+      first = Some(deck.deal()),
+      second = Some(deck.deal()),
+      third = Some(deck.deal())
     )
-    board.copy(flop = Some(flop))
   }
 
   private def dealTurn(deck: MutableDeck, board: Board) = {
     burnCard(deck)
-    board.copy(turn = Some(deck.deal()))
+    board.copy(fourth = Some(deck.deal()))
   }
 
   private def dealRiver(deck: MutableDeck, board: Board) = {
     burnCard(deck)
-    board.copy(turn = Some(deck.deal()))
+    board.copy(fifth = Some(deck.deal()))
   }
 }
