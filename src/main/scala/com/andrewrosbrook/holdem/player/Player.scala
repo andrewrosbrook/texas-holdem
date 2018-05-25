@@ -1,14 +1,25 @@
-package com.andrewrosbrook.holdem
+package com.andrewrosbrook.holdem.player
+
+import com.andrewrosbrook.holdem._
 
 import scala.io.StdIn
 
-case class Player(name: String) {
-
+trait Player {
+  def name: String
   def act(board: Board,
           currentBet: Option[CurrentBet],
-          hand: Hand,
+          holeCards: HoleCards,
           yourStack: Long,
-          yourBet: Long): Action = {
+          yourBet: Long): Action
+}
+
+case class ConsolePlayer(name: String) extends Player {
+
+  override def act(board: Board,
+                  currentBet: Option[CurrentBet],
+                  hand: HoleCards,
+                  yourStack: Long,
+                  yourBet: Long): Action = {
 
     printState(board, hand)
 
@@ -33,7 +44,7 @@ case class Player(name: String) {
     promptForInput(allowedActions)
   }
 
-  private def printState(board: Board, hand: Hand) = {
+  private def printState(board: Board, hand: HoleCards) = {
     println()
     println(s"$name it is your turn to act")
     println()

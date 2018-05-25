@@ -1,16 +1,22 @@
 package com.andrewrosbrook.holdem
 
-class Game {
+import com.andrewrosbrook.holdem.deck.{Deck, MutableDeck}
+import com.andrewrosbrook.holdem.player.Player
+import com.andrewrosbrook.holdem.rank.HandCalculator
 
-  def start(numRounds: Int, players: List[Player], startingAmount: Long) = {
+object Game {
 
-    val deck = new MutableDeck().shuffle()
+  def start(numRounds: Int,
+            players: List[Player],
+            startingAmount: Long,
+            deck: Deck = new MutableDeck().shuffle()) = {
+
     val rounds = 1 to numRounds
     val initialStacks = players.map((_, startingAmount)).toMap
     val initialState = new RoundState(players = players, stacks = initialStacks)
     rounds.foldLeft(initialState)((state, roundNo) => {
 
-      println(s"Starting round no. $roundNo")
+      println(s"\n==========\nStarting round no. $roundNo")
       val roundEndState = round(deck, state)
       roundEndState.copy(
         pot = EMPTY_POT,
@@ -21,7 +27,7 @@ class Game {
     })
   }
 
-  private def round(deck: MutableDeck, state: RoundState, totalPot: Long = 0): RoundState = {
+  private def round(deck: Deck, state: RoundState, totalPot: Long = 0): RoundState = {
 
     val newState = if (state.isNewHand) {
       val hands = dealHands(state.players, deck)
@@ -136,8 +142,14 @@ class Game {
   }
 
   private def showdown(state: RoundState): Player = {
-    // TODO
-    throw new RuntimeException("Showdown not yet implemented")
+    val finalHands = state.hands.map(p => {
+      val player = p._1; val holeCards = p._2
+      val bestHand = HandCalculator.calculate(holeCards, state.board)
+      (player, bestHand)
+    }).toSeq
+    val (winningPlayer, winningHand) = finalHands.sortBy(_._2).last
+    println(s"${winningPlayer.name} wins with ${winningHand.rank}   ${winningHand.cards}")
+    winningPlayer
   }
 
   private def isBettingRoundComplete(state: RoundState) = {
@@ -148,19 +160,19 @@ class Game {
     distinctValues.size == 1
   }
 
-  private def dealHands(players: List[Player], deck: MutableDeck) = {
+  private def dealHands(players: List[Player], deck: Deck) = {
     players.map(
       // deal the first card
       p => (p, deck.deal())
     ).map(
       // deal the second card
-      p => (p._1, Hand(p._2, deck.deal()))
+      p => (p._1, HoleCards(p._2, deck.deal()))
     ).toMap
   }
 
-  private def burnCard(deck: MutableDeck) = deck.deal()
+  private def burnCard(deck: Deck) = deck.deal()
 
-  private def dealFlop(deck: MutableDeck, board: Board) = {
+  private def dealFlop(deck: Deck, board: Board) = {
     burnCard(deck)
     board.copy(
       first = Some(deck.deal()),
@@ -169,12 +181,12 @@ class Game {
     )
   }
 
-  private def dealTurn(deck: MutableDeck, board: Board) = {
+  private def dealTurn(deck: Deck, board: Board) = {
     burnCard(deck)
     board.copy(fourth = Some(deck.deal()))
   }
 
-  private def dealRiver(deck: MutableDeck, board: Board) = {
+  private def dealRiver(deck: Deck, board: Board) = {
     burnCard(deck)
     board.copy(fifth = Some(deck.deal()))
   }

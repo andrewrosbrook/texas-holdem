@@ -1,7 +1,13 @@
 package com.andrewrosbrook
 
+import com.andrewrosbrook.holdem.deck.Card
+import com.andrewrosbrook.holdem.player.Player
+
 package object holdem {
 
+  /**
+    * Represents an action a player can take during a betting round
+    */
   sealed abstract class Action()
   case class Bet(amt: Long) extends Action
   case class Call() extends Action
@@ -9,26 +15,23 @@ package object holdem {
   case class Fold() extends Action
   case class Raise(amt: Long) extends Action
 
-  sealed abstract class Suit()
-  case object Hearts extends Suit
-  case object Spades extends Suit
-  case object Diamonds extends Suit
-  case object Clubs extends Suit
+  /**
+    * Represents a players hole cards
+    *
+    * @param first the first card
+    * @param second the second card
+    */
+  case class HoleCards(first: Card, second: Card) {
+    def toList = List(first, second)
 
-  case class Card(suit: Suit, values: Int*) {
-    override def toString = suit.toString + " " + values.mkString(",")
-  }
-
-  type Flop = (Card, Card, Card)
-  type Turn = Card
-  type River = Card
-
-  case class Hand(first: Card, second: Card) {
     override def toString = {
       first.toString + " " + second.toString
     }
   }
 
+  /**
+    * Represents the five-card texas holdem board
+    */
   case class Board(first: Option[Card] = None,
                    second: Option[Card] = None,
                    third: Option[Card] = None,
@@ -45,26 +48,15 @@ package object holdem {
     override def toString = toList.mkString(" ")
   }
 
-  sealed abstract class HandType
-  case class Pair(first: Card, second: Card) extends HandType
-  case class TwoPair(firstPair: Pair, secondPair: Pair) extends HandType
-  case class ThreeOfAKind(first: Card, second: Card, third: Card) extends HandType
-  case class Straight(first: Card, second: Card, third: Card, fourth: Card, fifth: Card) extends HandType
-  case class Flush(first: Card, second: Card, third: Card, fourth: Card, fifth: Card) extends HandType
-  case class FullHouse(pair: Pair, threeOfAKind: ThreeOfAKind) extends HandType
-  case class FourOfAKind(first: Card, second: Card, third: Card, fourth: Card) extends HandType
-  case class StraightFlush(first: Card, second: Card, third: Card, fourth: Card, fifth: Card) extends HandType
-  case class RoyalFlush(first: Card, second: Card, third: Card, fourth: Card, fifth: Card) extends HandType
+  val EMPTY_POT = Map[Player, Long]()
+  val EMPTY_STACKS = Map[Player, Long]()
+  val EMPTY_HANDS = Map[Player, HoleCards]()
 
   case class CurrentBet(player: Player, amt: Long)
 
-  val EMPTY_POT = Map[Player, Long]()
-  val EMPTY_STACKS = Map[Player, Long]()
-  val EMPTY_HANDS = Map[Player, Hand]()
-
   case class RoundState(pot: Map[Player, Long] = EMPTY_POT,
                         stacks: Map[Player, Long] = EMPTY_STACKS,
-                        hands: Map[Player, Hand] = EMPTY_HANDS,
+                        hands: Map[Player, HoleCards] = EMPTY_HANDS,
                         players: List[Player],
                         board: Board = Board(None, None, None)) {
 

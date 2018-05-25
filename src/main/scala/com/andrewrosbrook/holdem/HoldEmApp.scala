@@ -1,10 +1,11 @@
 package com.andrewrosbrook.holdem
 
+import com.andrewrosbrook.holdem.player.{ConsolePlayer, Player}
+
 object HoldEmApp extends App {
 
-  val game = new Game()
-  val players = List(new Player("Lisa"), new Player("Andy"), new Player("Phil"))
+  val players = List(new ConsolePlayer("Lisa"), new ConsolePlayer("Andy"), new ConsolePlayer("Phil"))
   val initialStack = 1000l
   val numRounds = 5
-  game.start(numRounds, players, initialStack)
+  Game.start(numRounds, players, initialStack)
 }

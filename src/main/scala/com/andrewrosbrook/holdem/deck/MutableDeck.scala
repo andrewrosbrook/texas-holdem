@@ -1,29 +1,30 @@
-package com.andrewrosbrook.holdem
+package com.andrewrosbrook.holdem.deck
 
 import scala.collection.mutable.ListBuffer
 
+trait Deck {
+  def shuffle(): Deck
+  def deal(): Card
+  def dealAll(): List[Card]
+}
+
 /**
   * Mutable representation for a deck of cards.
+  *
+  * A mutable deck more closely represents a real world deck of cards.
   */
-class MutableDeck {
+class MutableDeck extends Deck {
 
   val cards = ListBuffer({
-    val suits = Seq(Hearts, Clubs, Diamonds, Spades)
     suits.map(suit => {
-      val special = List(
-        new Card(suit, 11),   // jack
-        new Card(suit, 12),   // queen
-        new Card(suit, 13),   // king
-        new Card(suit, 1, 14) // ace
-      )
-      2.to(10).map(new Card(suit, _)).toList ::: special
+      FaceValue.values.map(Card(suit, _))
     }).flatten.toList
   }: _*)
 
   // tracks deal position
   var position = 0
 
-  def shuffle(): MutableDeck = {
+  override def shuffle(): Deck = {
     val rand = scala.util.Random
     (position until cards.size).map(pos => {
       val newPos = rand.nextInt(cards.size)
@@ -36,7 +37,7 @@ class MutableDeck {
     this
   }
 
-  def deal(): Card = {
+  override def deal(): Card = {
     if (position == cards.size) {
       shuffleAndReset()
       deal()
